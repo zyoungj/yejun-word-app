@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>예준 영어 단어 학습기</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f5f7fb; padding:24px; }
+    textarea, input { width:100%; padding:12px; margin:8px 0; font-size:16px; }
+    button { padding:12px 16px; margin:6px; border:0; border-radius:10px; background:#2563eb; color:white; cursor:pointer; }
+    .card { background:white; padding:16px; margin:12px 0; border-radius:14px; box-shadow:0 2px 8px #ddd; }
+    .choice { display:block; background:#eef2ff; color:#111; margin:8px 0; }
+  </style>
+</head>
+<body>
+  <h1>📚 예준 영어 단어 학습기</h1>
+
+  <p>영어 단어를 한 줄에 하나씩 입력하세요.</p>
+  <textarea id="words" rows="8">visualize
+sturdy
+remarkable
+fascinating</textarea>
+
+  <button onclick="generate()">AI 단어카드 만들기</button>
+  <button onclick="pronounceAll()">발음 연습</button>
+  <button onclick="startSpelling()">스펠링 테스트</button>
+  <button onclick="makeQuiz()">동의어 퀴즈</button>
+
+  <div id="output"></div>
+
+<script>
+let cards = [];
+let quiz = [];
+let spellingIndex = 0;
+
+function getWords() {
+  return document.getElementById("words").value
+    .split("\n").map(w => w.trim()).filter(Boolean).slice(0, 20);
+}
+
+function speak(text) {
+  return new Promise(resolve => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    u.rate = 0.75;
+    u.onend = resolve;
+    speechSynthesis.speak(u);
+  });
+}
+
+function wait(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+async function generate() {
+  const words = getWords();
+  document.getElementById("output").innerHTML = "<div class='card'>AI가 단어카드를 만드는 중...</div>";
+
+  const res = await fetch("/api/generate", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ words })
+  });
+
+  const data = await res.json();
+  cards = data.cards || [];
+
+  document.getElementById("output").innerHTML = cards.map(c => `
+    <div class="card">
+      <h2>${c.word}</h2>
+      <p><b>Definition:</b><br>${c.definition}</p>
+      <p><b>Example 1:</b><br>${c.example1}</p>
+      <p><b>Example 2:</b><br>${c.example2}</p>
+      <p><b>Synonym:</b> ${c.synonym}</p>
+      <button onclick="speak('${c.word}')">🔊 발음 듣기</button>
+    </div>
+  `).join("");
+}
+
+async function pronounceAll() {
+  const words = getWords();
+  for (const word of words) {
+    for (let i = 0; i < 3; i++) {
+      await speak(word);
+      await wait(1000);
+    }
+  }
+}
+
+async function startSpelling() {
+  const words = getWords();
+  spellingIndex = 0;
+  showSpelling(words);
+}
+
+async function showSpelling(words) {
+  if (spellingIndex >= words.length) {
+    document.getElementById("output").innerHTML = "<div class='card'>🎉 스펠링 테스트 완료!</div>";
+    return;
+  }
+
+  const word = words[spellingIndex];
+  await speak(word);
+
+  document.getElementById("output").innerHTML = `
+    <div class="card">
+      <h2>스펠링 테스트 ${spellingIndex + 1}/${words.length}</h2>
+      <button onclick="speak('${word}')">🔊 다시 듣기</button>
+      <input id="spellAnswer" placeholder="들은 단어의 스펠링을 입력하세요" />
+      <button onclick="checkSpelling()">제출</button>
+      <div id="spellResult"></div>
+    </div>
+  `;
+}
+
+function checkSpelling() {
+  const words = getWords();
+  const word = words[spellingIndex].toLowerCase();
+  const answer = document.getElementById("spellAnswer").value.trim().toLowerCase();
+
+  if (answer === word) {
+    document.getElementById("spellResult").innerHTML = "✅ Correct!";
+    spellingIndex++;
+    setTimeout(() => showSpelling(words), 1000);
+  } else {
+    document.getElementById("spellResult").innerHTML = `❌ Try again. 힌트: ${word[0]}로 시작해요.`;
+  }
+}
+
+function shuffle(arr) {
+  return arr.sort(() => Math.random() - 0.5);
+}
+
+function makeQuiz() {
+  if (!cards.length) {
+    alert("먼저 AI 단어카드를 만들어 주세요.");
+    return;
+  }
+
+  quiz = cards.map(c => {
+    const choices = shuffle([c.synonym, ...c.distractors]).slice(0,4);
+    return { ...c, choices };
+  });
+
+  document.getElementById("output").innerHTML = `
+    <div class="card">
+      <h2>🎯 Synonym Quiz</h2>
+      ${quiz.map((q, i) => `
+        <div class="card">
+          <p><b>${i+1}.</b> ${q.quizSentence.replace(q.word, `"${q.word}"`)}</p>
+          ${q.choices.map((ch, j) => `
+            <label class="choice">
+              <input type="radio" name="q${i}" value="${ch}"> ${j+1}. ${ch}
+            </label>
+          `).join("")}
+        </div>
+      `).join("")}
+      <button onclick="gradeQuiz()">채점하기</button>
+      <div id="quizResult"></div>
+    </div>
+  `;
+}
+
+function gradeQuiz() {
+  let score = 0;
+  let result = "<h3>Result</h3>";
+  let weak = [];
+
+  quiz.forEach((q, i) => {
+    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+    const ok = selected && selected.value === q.synonym;
+    if (ok) score++;
+    else weak.push(`${q.word} = ${q.synonym}`);
+    result += `<p>${i+1}. ${ok ? "✅" : "❌ 정답: " + q.synonym}</p>`;
+  });
+
+  result += `<h3>Score: ${score}/${quiz.length}</h3>`;
+  result += `<h3>Weak Words</h3><p>${weak.join("<br>") || "없음 🎉"}</p>`;
+  document.getElementById("quizResult").innerHTML = result;
+}
+</script>
+</body>
+</html>
