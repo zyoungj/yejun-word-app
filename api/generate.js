@@ -4,32 +4,50 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { words } = req.body;
+    const { items } = req.body;
 
-    if (!words || !Array.isArray(words) || words.length === 0) {
+    if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: "No words provided" });
     }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ error: "GEMINI_API_KEY is missing" });
+    }
+
+    const wordLines = items
+      .slice(0, 20)
+      .map(item => {
+        return `Vocab Word: ${item.word}, Synonym: ${item.synonym || "create one"}, Antonym: ${item.antonym || "create one"}`;
+      })
+      .join("\n");
 
     const prompt = `
 You are an English tutor for upper elementary to middle school students.
 
 Return JSON only. No markdown. No explanation.
 
-For each word, create:
+Input rule:
+Each line has:
+Vocab Word, optional Synonym, optional Antonym.
+
+For each vocab word, create:
 - word
 - definition
 - example1
 - example2
 - synonym
+- antonym
 - quizSentence
 - distractors
 
-Rules:
+Important rules:
+- If a synonym is provided, use it exactly.
+- If an antonym is provided, use it exactly.
+- If synonym or antonym is missing, create a simple common one.
 - definition: very easy English
 - example1 and example2: simple student-friendly sentences
-- synonym: one common synonym
 - quizSentence: 8 to 15 words and includes the target word
-- distractors: 3 words with clearly different meanings
+- distractors: 2 words with clearly different meanings
 - no Korean
 
 JSON format:
@@ -40,15 +58,16 @@ JSON format:
       "definition": "To make a picture in your mind.",
       "example1": "I visualize my dream house.",
       "example2": "She can visualize the story while reading.",
-      "synonym": "imagine",
+      "synonym": "envision",
+      "antonym": "ignore",
       "quizSentence": "I can visualize my future school in my mind.",
-      "distractors": ["forget", "break", "hide"]
+      "distractors": ["break", "hide"]
     }
   ]
 }
 
 Words:
-${words.slice(0, 20).join(", ")}
+${wordLines}
 `;
 
     const aiRes = await fetch(
@@ -61,15 +80,11 @@ ${words.slice(0, 20).join(", ")}
         body: JSON.stringify({
           contents: [
             {
-              parts: [
-                {
-                  text: prompt
-                }
-              ]
+              parts: [{ text: prompt }]
             }
           ],
           generationConfig: {
-            temperature: 0.7,
+            temperature: 0.5,
             responseMimeType: "application/json"
           }
         })
@@ -85,8 +100,14 @@ ${words.slice(0, 20).join(", ")}
       });
     }
 
-    const text =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+      return res.status(500).json({
+        error: "Empty Gemini response",
+        detail: data
+      });
+    }
 
     const parsed = JSON.parse(text);
 
