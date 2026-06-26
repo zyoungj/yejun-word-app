@@ -318,7 +318,7 @@ async function pronounceAll() {
   for (const word of words) {
     for (let i = 0; i < 2; i++) {
       await speak(word);
-      await wait(1000);
+      await wait(700);
     }
   }
 }
