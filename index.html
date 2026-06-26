@@ -315,6 +315,10 @@ function speak(text) {
   });
 }
 
+function stopSpeaking() {
+  speechSynthesis.cancel();
+}
+  
 function wait(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
@@ -326,6 +330,7 @@ async function ensureCards() {
 }
 
 async function generate() {
+  topSpeaking();
   const items = getItems();
   if (!items.length) return alert("단어를 한 개 이상 입력해 주세요.");
 
@@ -370,6 +375,7 @@ function renderCards() {
 }
 
 async function pronounceAll() {
+  topSpeaking();
   const words = getWords();
   if (!words.length) return alert("단어를 먼저 입력해 주세요.");
 
@@ -382,6 +388,7 @@ async function pronounceAll() {
 }
 
 async function startSpelling() {
+  topSpeaking();
   const words = getWords();
   if (!words.length) return alert("단어를 먼저 입력해 주세요.");
 
@@ -425,17 +432,46 @@ function checkSpelling() {
 }
 
 async function makeBlankQuiz() {
-  const ok = await ensureCards();
-  if (!ok) return;
+  stopSpeaking();
 
-  blankQuiz = shuffle([...cards]);
+  const items = getItems();
+  if (!items.length) return alert("단어를 먼저 입력해 주세요.");
 
+  document.getElementById("output").innerHTML =
+    `<div class="loading">📝 새로운 빈칸 퀴즈를 만드는 중이에요...</div>`;
+
+  try {
+    const res = await fetch("/api/generate", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ mode: "blank", items: shuffle([...items]) })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      document.getElementById("output").innerHTML =
+        `<div class="error">${data.error || "오류"}\n${JSON.stringify(data.detail || data, null, 2)}</div>`;
+      return;
+    }
+
+    blankQuiz = shuffle(data.cards || []);
+    renderBlankSubjective();
+
+  } catch (error) {
+    document.getElementById("output").innerHTML =
+      `<div class="error">화면 오류: ${error.message}</div>`;
+  }
+}
+
+function renderBlankSubjective() {
   document.getElementById("output").innerHTML = `
     <h2>📝 빈칸 퀴즈</h2>
     <button onclick="renderBlankMultipleChoice()">객관식문제로 바꾸기</button>
 
     ${blankQuiz.map((q, i) => {
-      const sentence = (q.example1 || q.example2 || "").replace(new RegExp(q.word, "i"), "____");
+      const sentence = q.blankSentence || (q.example1 || "").replace(new RegExp(q.word, "i"), "____");
+
       return `
         <div class="card">
           <p><b>${i+1}.</b> ${sentence}</p>
@@ -448,24 +484,25 @@ async function makeBlankQuiz() {
     <div id="blankResult"></div>
   `;
 }
-
+  
 function renderBlankMultipleChoice() {
-  const allWords = blankQuiz.map(q => q.word);
+  stopSpeaking();
 
   document.getElementById("output").innerHTML = `
     <h2>📝 빈칸 퀴즈 - 객관식</h2>
-    <button onclick="makeBlankQuiz()">주관식문제로 바꾸기</button>
+    <button onclick="renderBlankSubjective()">주관식문제로 바꾸기</button>
 
     ${blankQuiz.map((q, i) => {
-      const sentence = (q.example1 || q.example2 || "").replace(new RegExp(q.word, "i"), "____");
+      const sentence = q.blankSentence || (q.example1 || "").replace(new RegExp(q.word, "i"), "____");
 
-      let wrongChoices = shuffle(allWords.filter(w => w !== q.word)).slice(0, 3);
+      let choices = [q.word, ...(q.blankChoices || [])].filter(Boolean);
+      choices = [...new Set(choices)];
 
-      while (wrongChoices.length < 3) {
-        wrongChoices.push(["forget", "break", "hide", "ordinary", "weak"][wrongChoices.length]);
+      while (choices.length < 4) {
+        choices.push(["forget", "break", "hide", "ordinary", "weak"][choices.length]);
       }
 
-      const choices = shuffle([q.word, ...wrongChoices]);
+      choices = shuffle(choices).slice(0, 4);
 
       return `
         <div class="card">
@@ -536,6 +573,7 @@ function gradeBlankQuiz() {
 }
 
 async function makeQuiz() {
+  topSpeaking();
   const items = getItems();
   if (!items.length) return alert("단어를 먼저 입력해 주세요.");
 
@@ -624,6 +662,7 @@ function addReviewWord(word) {
 }
 
 function showReview() {
+  topSpeaking();
   if (!reviewWords.length) {
     document.getElementById("output").innerHTML = `
       <div class="card">
