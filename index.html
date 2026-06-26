@@ -330,7 +330,7 @@ async function ensureCards() {
 }
 
 async function generate() {
-  topSpeaking();
+  stopSpeaking();
   const items = getItems();
   if (!items.length) return alert("단어를 한 개 이상 입력해 주세요.");
 
@@ -375,7 +375,7 @@ function renderCards() {
 }
 
 async function pronounceAll() {
-  topSpeaking();
+  stopSpeaking();
   const words = getWords();
   if (!words.length) return alert("단어를 먼저 입력해 주세요.");
 
@@ -388,7 +388,7 @@ async function pronounceAll() {
 }
 
 async function startSpelling() {
-  topSpeaking();
+  stopSpeaking();
   const words = getWords();
   if (!words.length) return alert("단어를 먼저 입력해 주세요.");
 
@@ -573,7 +573,7 @@ function gradeBlankQuiz() {
 }
 
 async function makeQuiz() {
-  topSpeaking();
+  stopSpeaking();
   const items = getItems();
   if (!items.length) return alert("단어를 먼저 입력해 주세요.");
 
@@ -662,7 +662,7 @@ function addReviewWord(word) {
 }
 
 function showReview() {
-  topSpeaking();
+  stopSpeaking();
   if (!reviewWords.length) {
     document.getElementById("output").innerHTML = `
       <div class="card">
