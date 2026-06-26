@@ -506,7 +506,7 @@ function gradeBlankMultipleChoice() {
   });
 
   result += `<h3>Score: ${score}/${blankQuiz.length}</h3>`;
-  result += `<h3>Weak Words</h3><p>${weak.join("<br>") || "없음 🎉"}</p></div>";
+  result += `<h3>Weak Words</h3><p>${weak.join("<br>") || "없음 🎉"}</p></div>`;
 
   document.getElementById("blankResult").innerHTML = result;
 }
