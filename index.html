@@ -2,222 +2,279 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>예준 영어 단어 학습기</title>
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #eef3ff;
-      color: #111827;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: radial-gradient(circle at top left,#dbeafe 0,transparent 32%),
+                  radial-gradient(circle at top right,#ede9fe 0,transparent 28%),
+                  #f8fafc;
+      color: #0f172a;
     }
-    header {
-      padding: 22px 32px;
-      background: linear-gradient(135deg, #2563eb, #7c3aed);
+    header { padding: 34px 28px 24px; max-width: 1280px; margin: 0 auto; }
+    .hero {
+      background: linear-gradient(135deg,#2563eb,#7c3aed);
       color: white;
+      border-radius: 28px;
+      padding: 30px;
+      box-shadow: 0 20px 45px rgba(37,99,235,.25);
     }
-    header h1 { margin: 0; }
-    header p { margin: 6px 0 0; opacity: 0.9; }
+    .hero h1 { margin:0; font-size:34px; }
+    .hero p { margin:10px 0 0; color:#e0e7ff; }
 
     .layout {
-      display: grid;
-      grid-template-columns: 420px 1fr;
-      gap: 20px;
-      padding: 20px;
+      max-width:1280px;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns:430px 1fr;
+      gap:22px;
+      padding:0 28px 32px;
     }
-
     .panel {
-      background: white;
-      border-radius: 18px;
-      padding: 20px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      background:rgba(255,255,255,.92);
+      border:1px solid #e2e8f0;
+      border-radius:26px;
+      padding:22px;
+      box-shadow:0 18px 40px rgba(15,23,42,.08);
     }
-
-    textarea, input, select {
-      width: 100%;
-      padding: 12px;
-      margin: 7px 0;
-      font-size: 15px;
-      border: 1px solid #d1d5db;
-      border-radius: 12px;
-    }
-
-    textarea { min-height: 150px; resize: vertical; }
-
-    button {
-      padding: 12px 14px;
-      margin: 6px 4px 6px 0;
-      border: 0;
-      border-radius: 12px;
-      background: #2563eb;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover { background: #1d4ed8; }
-    .secondary { background: #64748b; }
-    .green { background: #16a34a; }
-    .purple { background: #7c3aed; }
-
+    .section-title { margin:24px 0 10px; font-size:16px; color:#334155; }
     .hint {
-      font-size: 13px;
-      color: #64748b;
-      line-height: 1.6;
-      background: #f8fafc;
-      padding: 12px;
-      border-radius: 12px;
+      font-size:13px;
+      color:#64748b;
+      line-height:1.65;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      padding:13px;
+      border-radius:16px;
     }
-
-    .row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr;
-      gap: 8px;
+    textarea,input,select {
+      width:100%;
+      padding:13px 14px;
+      margin:7px 0;
+      font-size:15px;
+      border:1px solid #cbd5e1;
+      border-radius:14px;
+      background:white;
+      outline:none;
     }
+    textarea { min-height:170px; resize:vertical; line-height:1.55; }
+    textarea:focus,input:focus,select:focus {
+      border-color:#6366f1;
+      box-shadow:0 0 0 4px rgba(99,102,241,.12);
+    }
+    .input-row {
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr 1fr 42px;
+      gap:8px;
+      align-items:center;
+      margin-bottom:6px;
+    }
+    .button-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:14px;
+    }
+    .button-group {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:12px;
+    }
+    button {
+      border:0;
+      border-radius:14px;
+      padding:12px 15px;
+      font-size:14px;
+      font-weight:800;
+      cursor:pointer;
+      color:white;
+      background:#2563eb;
+      box-shadow:0 8px 16px rgba(37,99,235,.18);
+    }
+    button:hover { filter:brightness(.96); transform:translateY(-1px); }
+    .secondary { background:#64748b; }
+    .green { background:#16a34a; }
+    .purple { background:#7c3aed; }
+    .red { background:#ef4444; }
+    .orange { background:#f97316; }
+    .pink { background:#db2777; }
+    .small-btn { padding:10px; margin:0; }
+    hr { border:0; border-top:1px solid #e2e8f0; margin:22px 0; }
 
     .card {
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      padding: 16px;
-      margin: 14px 0;
-      border-radius: 16px;
+      background:white;
+      border:1px solid #e2e8f0;
+      padding:18px;
+      margin:14px 0;
+      border-radius:22px;
+      box-shadow:0 10px 24px rgba(15,23,42,.06);
     }
-
     .word-title {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:8px;
     }
-
+    .word-title h2 { margin:0; font-size:26px; color:#1e3a8a; }
     .badge {
-      display: inline-block;
-      padding: 5px 9px;
-      border-radius: 999px;
-      background: #eef2ff;
-      color: #3730a3;
-      font-size: 12px;
-      font-weight: bold;
+      padding:6px 10px;
+      border-radius:999px;
+      background:#eef2ff;
+      color:#4338ca;
+      font-size:12px;
+      font-weight:800;
     }
-
+    .card p { color:#334155; line-height:1.55; }
     .quiz-choice {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #f8fafc;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 11px;
-      margin: 8px 0;
-      cursor: pointer;
+      display:flex;
+      align-items:center;
+      gap:11px;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:16px;
+      padding:13px;
+      margin:9px 0;
+      cursor:pointer;
     }
-
-    .quiz-choice input {
-      width: auto;
-      margin: 0;
-    }
-
-    .error {
-      color: #991b1b;
-      background: #fee2e2;
-      padding: 14px;
-      border-radius: 12px;
-      white-space: pre-wrap;
-    }
-
+    .quiz-choice:hover { background:#eef2ff; border-color:#c7d2fe; }
+    .quiz-choice input { width:auto; margin:0; accent-color:#4f46e5; }
     .loading {
-      padding: 18px;
-      border-radius: 14px;
-      background: #eff6ff;
-      color: #1d4ed8;
-      font-weight: bold;
+      padding:20px;
+      border-radius:20px;
+      background:linear-gradient(135deg,#eff6ff,#f5f3ff);
+      color:#1d4ed8;
+      font-weight:800;
+      border:1px solid #dbeafe;
     }
-
-    @media (max-width: 900px) {
-      .layout { grid-template-columns: 1fr; }
+    .error {
+      color:#991b1b;
+      background:#fee2e2;
+      padding:16px;
+      border-radius:18px;
+      white-space:pre-wrap;
+    }
+    @media (max-width:940px) {
+      .layout { grid-template-columns:1fr; padding:0 18px 24px; }
+      .input-row { grid-template-columns:1fr; }
+      .button-grid { grid-template-columns:1fr; }
+      header { padding:18px; }
+      .hero h1 { font-size:27px; }
     }
   </style>
 </head>
 <body>
 <header>
-  <h1>📚 예준 영어 단어 학습기</h1>
-  <p>단어카드 · 발음연습 · 스펠링 테스트 · 동의어 퀴즈</p>
+  <div class="hero">
+    <h1>📚 예준 영어 단어 학습기</h1>
+    <p>단어카드 · 발음연습 · 스펠링 테스트 · 빈칸 퀴즈 · Synonym Quiz · 오늘 복습</p>
+  </div>
 </header>
 
 <main class="layout">
   <section class="panel">
-    <h2>✍️ 입력</h2>
+    <h2>✍️ 단어 입력</h2>
 
-    <h3>방법 1. 여러 줄 한 번에 입력</h3>
+    <h3 class="section-title">방법 1. 한 단어씩 추가</h3>
+    <div class="hint">+ 버튼으로 줄을 늘린 뒤, 여러 단어를 한 번에 아래 입력창으로 추가할 수 있어요.</div>
+    <div id="singleRows"></div>
+
+    <div class="button-group">
+      <button class="secondary" onclick="addSingleRow()">+ 줄 추가</button>
+      <button onclick="appendRowsToBulk()">입력창에 추가</button>
+    </div>
+
+    <h3 class="section-title">방법 2. 여러 줄 한 번에 입력</h3>
     <div class="hint">
-      한 줄에 <b>Vocab Word, Synonym, Antonym</b> 순서로 입력하세요.<br>
-      Vocab Word는 필수, Synonym / Antonym은 선택입니다.<br>
-      예: visualize envision ignore
+      한 줄에 <b>Vocab Word, Synonym, Antonym, Part of Speech</b> 순서로 입력하세요.<br>
+      예: visualize envision ignore verb
     </div>
 
-    <textarea id="bulkInput">visualize envision ignore
-sturdy durable weak
-mature develop decline
-remarkable striking ordinary</textarea>
+    <textarea id="bulkInput">visualize envision ignore verb
+sturdy durable weak adjective
+mature develop decline verb
+remarkable striking ordinary adjective</textarea>
 
-    <h3>방법 2. 한 단어씩 추가</h3>
-    <div class="row">
-      <input id="wordInput" placeholder="Vocab Word" />
-      <input id="synonymInput" placeholder="Synonym" />
-      <input id="antonymInput" placeholder="Antonym" />
-      <select id="posInput">
-        <option value="">Part of Speech</option>
-        <option value="noun">noun</option>
-        <option value="verb">verb</option>
-        <option value="adjective">adjective</option>
-        <option value="adverb">adverb</option>
-      </select>
-    </div>
-
-    <button class="secondary" onclick="addSingleWord()">+ 입력창에 추가</button>
+    <button class="red" onclick="resetInput()">입력창 리셋</button>
 
     <hr>
 
-    <button onclick="generate()">AI 단어카드 만들기</button>
-    <button class="green" onclick="pronounceAll()">발음 연습</button>
-    <button class="purple" onclick="startSpelling()">스펠링 테스트</button>
-    <button onclick="makeQuiz()">동의어 퀴즈</button>
+    <div class="button-grid">
+      <button onclick="generate()">📚 단어카드</button>
+      <button class="green" onclick="pronounceAll()">🔊 발음연습</button>
+      <button class="purple" onclick="startSpelling()">✍️ 스펠링 테스트</button>
+      <button class="orange" onclick="makeBlankQuiz()">📝 빈칸 퀴즈</button>
+      <button onclick="makeQuiz()">🎯 Synonym Quiz</button>
+      <button class="pink" onclick="showReview()">⭐ 오늘 복습</button>
+    </div>
   </section>
 
   <section class="panel">
-    <h2>📖 결과</h2>
-    <div id="output" class="hint">
-      왼쪽에서 단어를 입력하고 버튼을 눌러주세요.
-    </div>
+    <h2>📖 학습 결과</h2>
+    <div id="output" class="hint">왼쪽에서 단어를 입력하고 원하는 학습 버튼을 눌러주세요.</div>
   </section>
 </main>
 
 <script>
 let cards = [];
 let quiz = [];
+let blankQuiz = [];
+let spellingWords = [];
 let spellingIndex = 0;
+let reviewWords = JSON.parse(localStorage.getItem("reviewWords") || "[]");
 
-function addSingleWord() {
-  const word = document.getElementById("wordInput").value.trim();
-  const synonym = document.getElementById("synonymInput").value.trim();
-  const antonym = document.getElementById("antonymInput").value.trim();
-  const pos = document.getElementById("posInput").value.trim();
+function addSingleRow() {
+  const box = document.getElementById("singleRows");
+  const row = document.createElement("div");
+  row.className = "input-row";
+  row.innerHTML = `
+    <input placeholder="Vocab Word" class="row-word" />
+    <input placeholder="Synonym" class="row-synonym" />
+    <input placeholder="Antonym" class="row-antonym" />
+    <select class="row-pos">
+      <option value="">Part of Speech</option>
+      <option value="noun">noun</option>
+      <option value="verb">verb</option>
+      <option value="adjective">adjective</option>
+      <option value="adverb">adverb</option>
+    </select>
+    <button class="small-btn red" onclick="this.parentElement.remove()">×</button>
+  `;
+  box.appendChild(row);
+}
 
-  if (!word) {
-    alert("Vocab Word는 꼭 입력해야 해요.");
-    return;
-  }
+function appendRowsToBulk() {
+  const rows = document.querySelectorAll(".input-row");
+  const lines = [];
 
-  const line = [word, synonym, antonym, pos].filter(Boolean).join(" ");
+  rows.forEach(row => {
+    const word = row.querySelector(".row-word").value.trim();
+    const synonym = row.querySelector(".row-synonym").value.trim();
+    const antonym = row.querySelector(".row-antonym").value.trim();
+    const pos = row.querySelector(".row-pos").value.trim();
+    if (word) lines.push([word, synonym, antonym, pos].filter(Boolean).join(" "));
+  });
+
+  if (!lines.length) return alert("추가할 단어를 입력해 주세요.");
+
   const textarea = document.getElementById("bulkInput");
   textarea.value = textarea.value.trim()
-    ? textarea.value.trim() + "\n" + line
-    : line;
+    ? textarea.value.trim() + "\n" + lines.join("\n")
+    : lines.join("\n");
+}
 
-  document.getElementById("wordInput").value = "";
-  document.getElementById("synonymInput").value = "";
-  document.getElementById("antonymInput").value = "";
-  document.getElementById("posInput").value = "";
+function resetInput() {
+  document.getElementById("bulkInput").value = "";
+  document.getElementById("singleRows").innerHTML = "";
+  addSingleRow();
+  cards = [];
+  quiz = [];
+  blankQuiz = [];
+  document.getElementById("output").innerHTML = "입력창이 리셋되었어요.";
 }
 
 function getItems() {
@@ -242,6 +299,12 @@ function getWords() {
   return getItems().map(item => item.word);
 }
 
+function shuffle(arr) {
+  return arr.map(v => ({ v, sort: Math.random() }))
+    .sort((a,b) => a.sort - b.sort)
+    .map(({v}) => v);
+}
+
 function speak(text) {
   return new Promise(resolve => {
     const u = new SpeechSynthesisUtterance(text);
@@ -256,98 +319,89 @@ function wait(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
 
+async function ensureCards() {
+  if (cards.length) return true;
+  await generate();
+  return cards.length > 0;
+}
+
 async function generate() {
   const items = getItems();
+  if (!items.length) return alert("단어를 한 개 이상 입력해 주세요.");
 
-  if (items.length === 0) {
-    alert("단어를 한 개 이상 입력해 주세요.");
-    return;
-  }
-
-  document.getElementById("output").innerHTML =
-    `<div class="loading">AI가 단어카드를 만드는 중이에요...</div>`;
+  document.getElementById("output").innerHTML = `<div class="loading">✨ AI가 단어카드를 만드는 중이에요...</div>`;
 
   try {
     const res = await fetch("/api/generate", {
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ items })
+      body: JSON.stringify({ mode: "cards", items })
     });
 
     const data = await res.json();
 
     if (!res.ok) {
-      document.getElementById("output").innerHTML =
-        `<div class="error">오류 발생\n${data.error || ""}\n${JSON.stringify(data.detail || data, null, 2)}</div>`;
+      document.getElementById("output").innerHTML = `<div class="error">${data.error || "오류"}\n${JSON.stringify(data.detail || data, null, 2)}</div>`;
       return;
     }
 
     cards = data.cards || [];
-
-    document.getElementById("output").innerHTML = cards.map(c => `
-      <div class="card">
-        <div class="word-title">
-          <h2>${c.word}</h2>
-          <span class="badge">${c.partOfSpeech || "word"}</span>
-        </div>
-
-        <p><b>Definition:</b><br>${c.definition}</p>
-        <p><b>Example 1:</b><br>${c.example1}</p>
-        <p><b>Example 2:</b><br>${c.example2}</p>
-        <p><b>Synonym:</b> ${c.synonym || "-"}</p>
-        <p><b>Antonym:</b> ${c.antonym || "-"}</p>
-
-        <button onclick="speak('${c.word}')">🔊 발음 듣기</button>
-      </div>
-    `).join("");
+    renderCards();
 
   } catch (error) {
-    document.getElementById("output").innerHTML =
-      `<div class="error">화면 오류: ${error.message}</div>`;
+    document.getElementById("output").innerHTML = `<div class="error">화면 오류: ${error.message}</div>`;
   }
+}
+
+function renderCards() {
+  document.getElementById("output").innerHTML = cards.map(c => `
+    <div class="card">
+      <div class="word-title">
+        <h2>${c.word}</h2>
+        <span class="badge">${c.partOfSpeech || "word"}</span>
+      </div>
+      <p><b>Definition</b><br>${c.definition}</p>
+      <p><b>Example 1</b><br>${c.example1}</p>
+      <p><b>Example 2</b><br>${c.example2}</p>
+      <p><b>Synonym:</b> ${c.synonym || "-"} &nbsp; | &nbsp; <b>Antonym:</b> ${c.antonym || "-"}</p>
+      <button onclick="speak('${c.word}')">🔊 발음 듣기</button>
+    </div>
+  `).join("");
 }
 
 async function pronounceAll() {
   const words = getWords();
-
-  if (words.length === 0) {
-    alert("단어를 먼저 입력해 주세요.");
-    return;
-  }
+  if (!words.length) return alert("단어를 먼저 입력해 주세요.");
 
   for (const word of words) {
     for (let i = 0; i < 2; i++) {
       await speak(word);
-      await wait(700);
+      await wait(500);
     }
   }
 }
 
 async function startSpelling() {
   const words = getWords();
+  if (!words.length) return alert("단어를 먼저 입력해 주세요.");
 
-  if (words.length === 0) {
-    alert("단어를 먼저 입력해 주세요.");
-    return;
-  }
-
+  spellingWords = shuffle([...words]);
   spellingIndex = 0;
-  showSpelling(words);
+  showSpelling();
 }
 
-async function showSpelling(words) {
-  if (spellingIndex >= words.length) {
-    document.getElementById("output").innerHTML =
-      `<div class="card"><h2>🎉 스펠링 테스트 완료!</h2></div>`;
+async function showSpelling() {
+  if (spellingIndex >= spellingWords.length) {
+    document.getElementById("output").innerHTML = `<div class="card"><h2>🎉 스펠링 테스트 완료!</h2></div>`;
     return;
   }
 
-  const word = words[spellingIndex];
+  const word = spellingWords[spellingIndex];
   await speak(word);
 
   document.getElementById("output").innerHTML = `
     <div class="card">
-      <h2>스펠링 테스트 ${spellingIndex + 1}/${words.length}</h2>
+      <h2>스펠링 테스트 ${spellingIndex + 1}/${spellingWords.length}</h2>
       <button onclick="speak('${word}')">🔊 다시 듣기</button>
       <input id="spellAnswer" placeholder="들은 단어의 스펠링을 입력하세요" />
       <button onclick="checkSpelling()">제출</button>
@@ -357,52 +411,109 @@ async function showSpelling(words) {
 }
 
 function checkSpelling() {
-  const words = getWords();
-  const word = words[spellingIndex].toLowerCase();
+  const word = spellingWords[spellingIndex].toLowerCase();
   const answer = document.getElementById("spellAnswer").value.trim().toLowerCase();
 
   if (answer === word) {
     document.getElementById("spellResult").innerHTML = "<p>✅ Correct!</p>";
     spellingIndex++;
-    setTimeout(() => showSpelling(words), 900);
+    setTimeout(showSpelling, 900);
   } else {
-    document.getElementById("spellResult").innerHTML =
-      `<p>❌ Try again. 힌트: <b>${word[0]}</b>로 시작해요.</p>`;
+    addReviewWord(spellingWords[spellingIndex]);
+    document.getElementById("spellResult").innerHTML = `<p>❌ Try again. 힌트: <b>${word[0]}</b>로 시작해요.</p>`;
   }
 }
 
-function shuffle(arr) {
-  return arr
-    .map(v => ({ v, sort: Math.random() }))
-    .sort((a, b) => a.sort - b.sort)
-    .map(({ v }) => v);
+async function makeBlankQuiz() {
+  const ok = await ensureCards();
+  if (!ok) return;
+
+  blankQuiz = shuffle([...cards]);
+
+  document.getElementById("output").innerHTML = `
+    <h2>📝 빈칸 퀴즈</h2>
+    ${blankQuiz.map((q, i) => {
+      const sentence = (q.example1 || q.example2 || "").replace(new RegExp(q.word, "i"), "____");
+      return `
+        <div class="card">
+          <p><b>${i+1}.</b> ${sentence}</p>
+          <input id="blank${i}" placeholder="빈칸에 들어갈 단어를 입력하세요" />
+        </div>
+      `;
+    }).join("")}
+    <button onclick="gradeBlankQuiz()">채점하기</button>
+    <div id="blankResult"></div>
+  `;
 }
 
-function makeQuiz() {
-  if (!cards.length) {
-    alert("먼저 AI 단어카드를 만들어 주세요.");
-    return;
-  }
+function gradeBlankQuiz() {
+  let score = 0;
+  let result = "<div class='card'><h3>Result</h3>";
+  let weak = [];
 
-  quiz = cards.map(c => {
-    let choices = [c.synonym, c.antonym, ...(c.distractors || [])]
-      .filter(Boolean);
+  blankQuiz.forEach((q, i) => {
+    const answer = document.getElementById(`blank${i}`).value.trim().toLowerCase();
+    const ok = answer === q.word.toLowerCase();
 
-    choices = [...new Set(choices)];
-
-    while (choices.length < 4) {
-      choices.push(["forget", "break", "hide", "ordinary", "weak"][choices.length]);
+    if (ok) {
+      score++;
+      result += `<p>${i+1}. ✅</p>`;
+    } else {
+      weak.push(`${q.word}`);
+      addReviewWord(q.word);
+      result += `<p>${i+1}. ❌ 정답: <b>${q.word}</b></p>`;
     }
-
-    return { ...c, choices: shuffle(choices).slice(0, 4) };
   });
 
+  result += `<h3>Score: ${score}/${blankQuiz.length}</h3>`;
+  result += `<h3>Weak Words</h3><p>${weak.join("<br>") || "없음 🎉"}</p></div>`;
+  document.getElementById("blankResult").innerHTML = result;
+}
+
+async function makeQuiz() {
+  const items = getItems();
+  if (!items.length) return alert("단어를 먼저 입력해 주세요.");
+
+  document.getElementById("output").innerHTML = `<div class="loading">🎯 새로운 동의어 퀴즈를 만드는 중이에요...</div>`;
+
+  try {
+    const res = await fetch("/api/generate", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ mode: "quiz", items: shuffle([...items]) })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      document.getElementById("output").innerHTML = `<div class="error">${data.error || "오류"}\n${JSON.stringify(data.detail || data, null, 2)}</div>`;
+      return;
+    }
+
+    quiz = shuffle(data.cards || []).map(c => {
+      let choices = [c.synonym, c.antonym, ...(c.distractors || [])].filter(Boolean);
+      choices = [...new Set(choices)];
+
+      while (choices.length < 4) {
+        choices.push(["forget", "break", "hide", "ordinary", "weak"][choices.length]);
+      }
+
+      return { ...c, choices: shuffle(choices).slice(0, 4) };
+    });
+
+    renderQuiz();
+
+  } catch (error) {
+    document.getElementById("output").innerHTML = `<div class="error">화면 오류: ${error.message}</div>`;
+  }
+}
+
+function renderQuiz() {
   document.getElementById("output").innerHTML = `
     <h2>🎯 Synonym Quiz</h2>
     ${quiz.map((q, i) => `
       <div class="card">
         <p><b>${i+1}.</b> ${q.quizSentence.replace(q.word, `"${q.word}"`)}</p>
-
         ${q.choices.map((ch, j) => `
           <label class="quiz-choice">
             <input type="radio" name="q${i}" value="${ch}">
@@ -411,7 +522,6 @@ function makeQuiz() {
         `).join("")}
       </div>
     `).join("")}
-
     <button onclick="gradeQuiz()">채점하기</button>
     <div id="quizResult"></div>
   `;
@@ -431,15 +541,51 @@ function gradeQuiz() {
       result += `<p>${i+1}. ✅</p>`;
     } else {
       weak.push(`${q.word} = ${q.synonym}`);
+      addReviewWord(q.word);
       result += `<p>${i+1}. ❌ 정답: <b>${q.synonym}</b></p>`;
     }
   });
 
   result += `<h3>Score: ${score}/${quiz.length}</h3>`;
   result += `<h3>Weak Words</h3><p>${weak.join("<br>") || "없음 🎉"}</p></div>`;
-
   document.getElementById("quizResult").innerHTML = result;
 }
+
+function addReviewWord(word) {
+  if (!reviewWords.includes(word)) {
+    reviewWords.push(word);
+    localStorage.setItem("reviewWords", JSON.stringify(reviewWords));
+  }
+}
+
+function showReview() {
+  if (!reviewWords.length) {
+    document.getElementById("output").innerHTML = `
+      <div class="card">
+        <h2>⭐ 오늘 복습</h2>
+        <p>아직 복습할 단어가 없어요. 틀린 단어가 생기면 여기에 자동으로 저장됩니다.</p>
+      </div>
+    `;
+    return;
+  }
+
+  document.getElementById("output").innerHTML = `
+    <div class="card">
+      <h2>⭐ 오늘 복습</h2>
+      <p>틀렸던 단어를 다시 연습해 봐요.</p>
+      ${reviewWords.map(w => `<p>• <b>${w}</b> <button onclick="speak('${w}')">🔊</button></p>`).join("")}
+      <button class="red" onclick="clearReview()">복습 목록 비우기</button>
+    </div>
+  `;
+}
+
+function clearReview() {
+  reviewWords = [];
+  localStorage.removeItem("reviewWords");
+  showReview();
+}
+
+addSingleRow();
 </script>
 </body>
 </html>
