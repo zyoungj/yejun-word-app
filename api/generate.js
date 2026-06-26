@@ -78,7 +78,7 @@ ${wordLines}
             }
           ],
           generationConfig: {
-            temperature: mode === "quiz" || mode === "blank" ? 0.9 : 0.3,
+            temperature: mode === "quiz" || mode === "blank" ? 0.6 : 0.3,
             responseMimeType: "application/json"
           }
         })
@@ -103,7 +103,23 @@ ${wordLines}
       });
     }
 
-    return res.status(200).json(JSON.parse(text));
+    let cleanText = text
+      .trim()
+      .replace(/^```json/i, "")
+      .replace(/^```/i, "")
+      .replace(/```$/i, "")
+      .trim();
+    
+    try {
+      const parsed = JSON.parse(cleanText);
+      return res.status(200).json(parsed);
+    } catch (parseError) {
+      return res.status(500).json({
+        error: "Gemini returned broken JSON",
+        detail: cleanText,
+        parseError: parseError.message
+      });
+    }
 
   } catch (error) {
     return res.status(500).json({
