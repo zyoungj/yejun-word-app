@@ -39,6 +39,9 @@ Rules:
 - quizSentence: 8-15 words and includes the word.
 - distractors: exactly 2 wrong words.
 - no Korean.
+- If mode is blank, create a fresh blankSentence each time.
+- blankSentence must include ____ instead of the target word.
+- blankChoices must be exactly 3 wrong vocab words.
 
 Return:
 {
@@ -52,6 +55,8 @@ Return:
       "synonym": "",
       "antonym": "",
       "quizSentence": "",
+      "blankSentence": "",
+      "blankChoices": ["", "", ""],
       "distractors": ["", ""]
     }
   ]
