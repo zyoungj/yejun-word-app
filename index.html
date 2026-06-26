@@ -19,11 +19,11 @@
       background: linear-gradient(135deg,#2563eb,#7c3aed);
       color: white;
       border-radius: 28px;
-      padding: 30px;
+      padding: 10px;
       box-shadow: 0 20px 45px rgba(37,99,235,.25);
     }
-    .hero h1 { margin:0; font-size:34px; }
-    .hero p { margin:10px 0 0; color:#e0e7ff; }
+    .hero h1 { margin:0; font-size:28px; }
+    .hero p { margin:5px 0 0; color:#e0e7ff; }
 
     .layout {
       max-width:1280px;
@@ -432,6 +432,8 @@ async function makeBlankQuiz() {
 
   document.getElementById("output").innerHTML = `
     <h2>📝 빈칸 퀴즈</h2>
+    <button onclick="renderBlankMultipleChoice()">객관식문제로 바꾸기</button>
+
     ${blankQuiz.map((q, i) => {
       const sentence = (q.example1 || q.example2 || "").replace(new RegExp(q.word, "i"), "____");
       return `
@@ -441,9 +443,72 @@ async function makeBlankQuiz() {
         </div>
       `;
     }).join("")}
+
     <button onclick="gradeBlankQuiz()">채점하기</button>
     <div id="blankResult"></div>
   `;
+}
+
+function renderBlankMultipleChoice() {
+  const allWords = blankQuiz.map(q => q.word);
+
+  document.getElementById("output").innerHTML = `
+    <h2>📝 빈칸 퀴즈 - 객관식</h2>
+    <button onclick="makeBlankQuiz()">주관식문제로 바꾸기</button>
+
+    ${blankQuiz.map((q, i) => {
+      const sentence = (q.example1 || q.example2 || "").replace(new RegExp(q.word, "i"), "____");
+
+      let wrongChoices = shuffle(allWords.filter(w => w !== q.word)).slice(0, 3);
+
+      while (wrongChoices.length < 3) {
+        wrongChoices.push(["forget", "break", "hide", "ordinary", "weak"][wrongChoices.length]);
+      }
+
+      const choices = shuffle([q.word, ...wrongChoices]);
+
+      return `
+        <div class="card">
+          <p><b>${i+1}.</b> ${sentence}</p>
+
+          ${choices.map((choice, j) => `
+            <label class="quiz-choice">
+              <input type="radio" name="blankMC${i}" value="${choice}">
+              <span>${j+1}. ${choice}</span>
+            </label>
+          `).join("")}
+        </div>
+      `;
+    }).join("")}
+
+    <button onclick="gradeBlankMultipleChoice()">채점하기</button>
+    <div id="blankResult"></div>
+  `;
+}
+
+function gradeBlankMultipleChoice() {
+  let score = 0;
+  let result = "<div class='card'><h3>Result</h3>";
+  let weak = [];
+
+  blankQuiz.forEach((q, i) => {
+    const selected = document.querySelector(`input[name="blankMC${i}"]:checked`);
+    const ok = selected && selected.value === q.word;
+
+    if (ok) {
+      score++;
+      result += `<p>${i+1}. ✅</p>`;
+    } else {
+      weak.push(q.word);
+      addReviewWord(q.word);
+      result += `<p>${i+1}. ❌ 정답: <b>${q.word}</b></p>`;
+    }
+  });
+
+  result += `<h3>Score: ${score}/${blankQuiz.length}</h3>`;
+  result += `<h3>Weak Words</h3><p>${weak.join("<br>") || "없음 🎉"}</p></div>";
+
+  document.getElementById("blankResult").innerHTML = result;
 }
 
 function gradeBlankQuiz() {
