@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { items } = req.body;
+    const { items, mode = "cards" } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: "No words provided" });
@@ -78,7 +78,7 @@ ${wordLines}
             }
           ],
           generationConfig: {
-            temperature: 0.3,
+            temperature: mode === "quiz" || mode === "blank" ? 0.9 : 0.3,
             responseMimeType: "application/json"
           }
         })
