@@ -141,6 +141,14 @@
       margin:9px 0;
       cursor:pointer;
     }
+    .target-word{
+      font-weight:700;
+      text-decoration:underline;
+      color:#2563eb;
+      background:#eff6ff;
+      padding:2px 6px;
+      border-radius:6px;
+    }
     .quiz-choice:hover { background:#eef2ff; border-color:#c7d2fe; }
     .quiz-choice input { width:auto; margin:0; accent-color:#4f46e5; }
     .loading {
@@ -618,8 +626,8 @@ function renderQuiz() {
       <div class="card">
         <p><b>${i+1}.</b> ${
         q.quizSentence.replace(
-            q.word,
-            `<u><strong>${q.word}</strong></u>`
+            new RegExp(`\\b${q.word}\\b`, "gi"),
+            `<span class="target-word">${q.word}</span>`
         )}
         </p>
         ${q.choices.map((ch, j) => `
