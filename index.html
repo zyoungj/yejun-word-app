@@ -616,7 +616,12 @@ function renderQuiz() {
     <h2>🎯 Synonym Quiz</h2>
     ${quiz.map((q, i) => `
       <div class="card">
-        <p><b>${i+1}.</b> ${q.quizSentence.replace(q.word, `"${q.word}"`)}</p>
+        <p><b>${i+1}.</b> ${
+        q.quizSentence.replace(
+            q.word,
+            `<u><strong>${q.word}</strong></u>`
+        )}
+        </p>
         ${q.choices.map((ch, j) => `
           <label class="quiz-choice">
             <input type="radio" name="q${i}" value="${ch}">
