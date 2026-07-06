@@ -96,6 +96,7 @@
       box-shadow:0 8px 16px rgba(37,99,235,.18);
     }
     button:hover { filter:brightness(.96); transform:translateY(-1px); }
+    button:disabled { opacity:.5; cursor:not-allowed; filter:none; transform:none; }
     .secondary { background:#64748b; }
     .green { background:#16a34a; }
     .purple { background:#7c3aed; }
@@ -194,10 +195,12 @@
       예: visualize envision ignore verb
     </div>
 
-    <textarea id="bulkInput">visualize envision ignore verb
+    <textarea id="bulkInput" oninput="updateWordCount()">visualize envision ignore verb
 sturdy durable weak adjective
 mature develop decline verb
 remarkable striking ordinary adjective</textarea>
+
+    <div id="wordCount" class="hint" style="margin-bottom:8px;">현재 <b>0</b>개 단어</div>
 
     <button class="red" onclick="resetInput()">입력창 리셋</button>
 
@@ -265,6 +268,7 @@ function appendRowsToBulk() {
   textarea.value = textarea.value.trim()
     ? textarea.value.trim() + "\n" + lines.join("\n")
     : lines.join("\n");
+  updateWordCount();
 }
 
 function resetInput() {
@@ -274,6 +278,7 @@ function resetInput() {
   cards = [];
   quiz = [];
   blankQuiz = [];
+  updateWordCount();
   document.getElementById("output").innerHTML = "입력창이 리셋되었어요.";
 }
 
@@ -282,7 +287,7 @@ function getItems() {
     .split("\n")
     .map(line => line.trim())
     .filter(Boolean)
-    .slice(0, 20)
+    .slice(0, 100)
     .map(line => {
       const parts = line.split(/\s+/);
       return {
@@ -295,6 +300,18 @@ function getItems() {
     .filter(item => item.word);
 }
 
+let busy = false;
+function setBusy(state) {
+  busy = state;
+  document.querySelectorAll(".button-grid button").forEach(b => b.disabled = state);
+}
+
+function updateWordCount() {
+  const n = getItems().length;
+  const el = document.getElementById("wordCount");
+  if (el) el.innerHTML = `현재 <b>${n}</b>개 단어` + (n >= 100 ? " (최대 100개까지 처리)" : "");
+}
+
 function getWords() {
   return getItems().map(item => item.word);
 }
@@ -303,6 +320,17 @@ function shuffle(arr) {
   return arr.map(v => ({ v, sort: Math.random() }))
     .sort((a,b) => a.sort - b.sort)
     .map(({v}) => v);
+}
+
+// 특수문자가 있는 단어(don't, re-use 등)에서도 안전하도록 이스케이프 처리
+function escapeHtml(str) {
+  return String(str ?? "").replace(/[&<>"']/g, ch => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[ch]));
+}
+
+function escapeRegExp(str) {
+  return String(str ?? "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function speak(text) {
@@ -318,6 +346,12 @@ function speak(text) {
 function stopSpeaking() {
   speechSynthesis.cancel();
 }
+
+// 발음 버튼 이벤트 위임: data-speak 속성을 가진 요소 클릭 시 해당 단어 발음
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-speak]");
+  if (el) speak(el.getAttribute("data-speak"));
+});
   
 function wait(ms) {
   return new Promise(r => setTimeout(r, ms));
@@ -333,9 +367,11 @@ async function generate() {
   stopSpeaking();
   const items = getItems();
   if (!items.length) return alert("단어를 한 개 이상 입력해 주세요.");
+  if (busy) return;
 
   document.getElementById("output").innerHTML = `<div class="loading">✨ AI가 단어카드를 만드는 중이에요...</div>`;
 
+  setBusy(true);
   try {
     const res = await fetch("/api/generate", {
       method: "POST",
@@ -355,6 +391,8 @@ async function generate() {
 
   } catch (error) {
     document.getElementById("output").innerHTML = `<div class="error">화면 오류: ${error.message}</div>`;
+  } finally {
+    setBusy(false);
   }
 }
 
@@ -362,14 +400,14 @@ function renderCards() {
   document.getElementById("output").innerHTML = cards.map(c => `
     <div class="card">
       <div class="word-title">
-        <h2>${c.word}</h2>
-        <span class="badge">${c.partOfSpeech || "word"}</span>
+        <h2>${escapeHtml(c.word)}</h2>
+        <span class="badge">${escapeHtml(c.partOfSpeech || "word")}</span>
       </div>
-      <p><b>Definition</b><br>${c.definition}</p>
-      <p><b>Example 1</b><br>${c.example1}</p>
-      <p><b>Example 2</b><br>${c.example2}</p>
-      <p><b>Synonym:</b> ${c.synonym || "-"} &nbsp; | &nbsp; <b>Antonym:</b> ${c.antonym || "-"}</p>
-      <button onclick="speak('${c.word}')">🔊 발음 듣기</button>
+      <p><b>Definition</b><br>${escapeHtml(c.definition)}</p>
+      <p><b>Example 1</b><br>${escapeHtml(c.example1)}</p>
+      <p><b>Example 2</b><br>${escapeHtml(c.example2)}</p>
+      <p><b>Synonym:</b> ${escapeHtml(c.synonym || "-")} &nbsp; | &nbsp; <b>Antonym:</b> ${escapeHtml(c.antonym || "-")}</p>
+      <button data-speak="${escapeHtml(c.word)}">🔊 발음 듣기</button>
     </div>
   `).join("");
 }
@@ -409,12 +447,13 @@ async function showSpelling() {
   document.getElementById("output").innerHTML = `
     <div class="card">
       <h2>스펠링 테스트 ${spellingIndex + 1}/${spellingWords.length}</h2>
-      <button onclick="speak('${word}')">🔊 다시 듣기</button>
-      <input id="spellAnswer" placeholder="들은 단어의 스펠링을 입력하세요" />
+      <button data-speak="${escapeHtml(word)}">🔊 다시 듣기</button>
+      <input id="spellAnswer" placeholder="들은 단어의 스펠링을 입력하세요" onkeydown="if(event.key==='Enter')checkSpelling()" />
       <button onclick="checkSpelling()">제출</button>
       <div id="spellResult"></div>
     </div>
   `;
+  document.getElementById("spellAnswer").focus();
 }
 
 function checkSpelling() {
@@ -436,10 +475,12 @@ async function makeBlankQuiz() {
 
   const items = getItems();
   if (!items.length) return alert("단어를 먼저 입력해 주세요.");
+  if (busy) return;
 
   document.getElementById("output").innerHTML =
     `<div class="loading">📝 새로운 빈칸 퀴즈를 만드는 중이에요...</div>`;
 
+  setBusy(true);
   try {
     const res = await fetch("/api/generate", {
       method: "POST",
@@ -461,6 +502,8 @@ async function makeBlankQuiz() {
   } catch (error) {
     document.getElementById("output").innerHTML =
       `<div class="error">화면 오류: ${error.message}</div>`;
+  } finally {
+    setBusy(false);
   }
 }
 
@@ -470,7 +513,7 @@ function renderBlankSubjective() {
     <button onclick="renderBlankMultipleChoice()">객관식문제로 바꾸기</button>
 
     ${blankQuiz.map((q, i) => {
-      const sentence = q.blankSentence || (q.example1 || "").replace(new RegExp(q.word, "i"), "____");
+      const sentence = q.blankSentence || (q.example1 || "").replace(new RegExp(escapeRegExp(q.word), "i"), "____");
 
       return `
         <div class="card">
@@ -493,7 +536,7 @@ function renderBlankMultipleChoice() {
     <button onclick="renderBlankSubjective()">주관식문제로 바꾸기</button>
 
     ${blankQuiz.map((q, i) => {
-      const sentence = q.blankSentence || (q.example1 || "").replace(new RegExp(q.word, "i"), "____");
+      const sentence = q.blankSentence || (q.example1 || "").replace(new RegExp(escapeRegExp(q.word), "i"), "____");
 
       let choices = [q.word, ...(q.blankChoices || [])].filter(Boolean);
       choices = [...new Set(choices)];
@@ -510,8 +553,8 @@ function renderBlankMultipleChoice() {
 
           ${choices.map((choice, j) => `
             <label class="quiz-choice">
-              <input type="radio" name="blankMC${i}" value="${choice}">
-              <span>${j+1}. ${choice}</span>
+              <input type="radio" name="blankMC${i}" value="${escapeHtml(choice)}">
+              <span>${j+1}. ${escapeHtml(choice)}</span>
             </label>
           `).join("")}
         </div>
@@ -536,9 +579,9 @@ function gradeBlankMultipleChoice() {
       score++;
       result += `<p>${i+1}. ✅</p>`;
     } else {
-      weak.push(q.word);
+      weak.push(escapeHtml(q.word));
       addReviewWord(q.word);
-      result += `<p>${i+1}. ❌ 정답: <b>${q.word}</b></p>`;
+      result += `<p>${i+1}. ❌ 정답: <b>${escapeHtml(q.word)}</b></p>`;
     }
   });
 
@@ -561,9 +604,9 @@ function gradeBlankQuiz() {
       score++;
       result += `<p>${i+1}. ✅</p>`;
     } else {
-      weak.push(`${q.word}`);
+      weak.push(escapeHtml(q.word));
       addReviewWord(q.word);
-      result += `<p>${i+1}. ❌ 정답: <b>${q.word}</b></p>`;
+      result += `<p>${i+1}. ❌ 정답: <b>${escapeHtml(q.word)}</b></p>`;
     }
   });
 
@@ -576,9 +619,11 @@ async function makeQuiz() {
   stopSpeaking();
   const items = getItems();
   if (!items.length) return alert("단어를 먼저 입력해 주세요.");
+  if (busy) return;
 
   document.getElementById("output").innerHTML = `<div class="loading">🎯 새로운 동의어 퀴즈를 만드는 중이에요...</div>`;
 
+  setBusy(true);
   try {
     const res = await fetch("/api/generate", {
       method: "POST",
@@ -608,6 +653,8 @@ async function makeQuiz() {
 
   } catch (error) {
     document.getElementById("output").innerHTML = `<div class="error">화면 오류: ${error.message}</div>`;
+  } finally {
+    setBusy(false);
   }
 }
 
@@ -617,15 +664,15 @@ function renderQuiz() {
     ${quiz.map((q, i) => `
       <div class="card">
         <p><b>${i+1}.</b> ${
-          q.quizSentence.replace(
-            new RegExp(`\\b${q.word}\\b`, "gi"),
-            `<u><strong>${q.word}</strong></u>`
+          escapeHtml(q.quizSentence).replace(
+            new RegExp(`\\b${escapeRegExp(q.word)}\\b`, "gi"),
+            `<u><strong>${escapeHtml(q.word)}</strong></u>`
           )
         }</p>
         ${q.choices.map((ch, j) => `
           <label class="quiz-choice">
-            <input type="radio" name="q${i}" value="${ch}">
-            <span>${j+1}. ${ch}</span>
+            <input type="radio" name="q${i}" value="${escapeHtml(ch)}">
+            <span>${j+1}. ${escapeHtml(ch)}</span>
           </label>
         `).join("")}
       </div>
@@ -648,9 +695,9 @@ function gradeQuiz() {
       score++;
       result += `<p>${i+1}. ✅</p>`;
     } else {
-      weak.push(`${q.word} = ${q.synonym}`);
+      weak.push(`${escapeHtml(q.word)} = ${escapeHtml(q.synonym)}`);
       addReviewWord(q.word);
-      result += `<p>${i+1}. ❌ 정답: <b>${q.synonym}</b></p>`;
+      result += `<p>${i+1}. ❌ 정답: <b>${escapeHtml(q.synonym)}</b></p>`;
     }
   });
 
@@ -682,7 +729,7 @@ function showReview() {
     <div class="card">
       <h2>⭐ 오늘 복습</h2>
       <p>틀렸던 단어를 다시 연습해 봐요.</p>
-      ${reviewWords.map(w => `<p>• <b>${w}</b> <button onclick="speak('${w}')">🔊</button></p>`).join("")}
+      ${reviewWords.map(w => `<p>• <b>${escapeHtml(w)}</b> <button data-speak="${escapeHtml(w)}">🔊</button></p>`).join("")}
       <button class="red" onclick="clearReview()">복습 목록 비우기</button>
     </div>
   `;
@@ -695,6 +742,7 @@ function clearReview() {
 }
 
 addSingleRow();
+updateWordCount();
 </script>
 </body>
 </html>
