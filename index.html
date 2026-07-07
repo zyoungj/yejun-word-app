@@ -322,6 +322,26 @@ function shuffle(arr) {
     .map(({v}) => v);
 }
 
+// 정답 + 오답 3개로 객관식 보기 4개 생성.
+// 오답은 pool(=다른 단어카드의 단어들)에서 우선 뽑고, 부족할 때만 기본 단어로 보충한다.
+function buildChoices(answer, pool) {
+  const ans = String(answer ?? "").trim();
+  const distractors = shuffle(
+    [...new Set(pool.map(w => String(w ?? "").trim()).filter(Boolean))]
+      .filter(w => w.toLowerCase() !== ans.toLowerCase())
+  ).slice(0, 3);
+
+  const choices = [ans, ...distractors].filter(Boolean);
+
+  const fallback = ["forget", "break", "hide", "ordinary", "weak", "bright", "calm", "huge"];
+  for (const f of fallback) {
+    if (choices.length >= 4) break;
+    if (!choices.some(c => c.toLowerCase() === f)) choices.push(f);
+  }
+
+  return shuffle(choices.slice(0, 4));
+}
+
 // 특수문자가 있는 단어(don't, re-use 등)에서도 안전하도록 이스케이프 처리
 function escapeHtml(str) {
   return String(str ?? "").replace(/[&<>"']/g, ch => ({
@@ -538,14 +558,12 @@ function renderBlankMultipleChoice() {
     ${blankQuiz.map((q, i) => {
       const sentence = q.blankSentence || (q.example1 || "").replace(new RegExp(escapeRegExp(q.word), "i"), "____");
 
-      let choices = [q.word, ...(q.blankChoices || [])].filter(Boolean);
-      choices = [...new Set(choices)];
-
-      while (choices.length < 4) {
-        choices.push(["forget", "break", "hide", "ordinary", "weak"][choices.length]);
-      }
-
-      choices = shuffle(choices).slice(0, 4);
+      // 오답 선택지는 다른 단어카드의 단어들로 만든다 (부족하면 AI가 준 blankChoices로 보충)
+      const pool = blankQuiz
+        .filter(x => x !== q)
+        .map(x => x.word)
+        .concat(q.blankChoices || []);
+      const choices = buildChoices(q.word, pool);
 
       return `
         <div class="card">
@@ -638,15 +656,14 @@ async function makeQuiz() {
       return;
     }
 
-    quiz = shuffle(data.cards || []).map(c => {
-      let choices = [c.synonym, c.antonym, ...(c.distractors || [])].filter(Boolean);
-      choices = [...new Set(choices)];
-
-      while (choices.length < 4) {
-        choices.push(["forget", "break", "hide", "ordinary", "weak"][choices.length]);
-      }
-
-      return { ...c, choices: shuffle(choices).slice(0, 4) };
+    const allCards = shuffle(data.cards || []);
+    quiz = allCards.map(c => {
+      // 정답은 c.synonym. 오답은 다른 단어카드의 동의어/단어/반의어를 활용한다.
+      const pool = allCards
+        .filter(x => x !== c)
+        .flatMap(x => [x.synonym, x.word, x.antonym])
+        .concat(c.antonym, c.distractors || []);
+      return { ...c, choices: buildChoices(c.synonym, pool) };
     });
 
     renderQuiz();
